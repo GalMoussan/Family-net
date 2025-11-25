@@ -1,0 +1,133 @@
+import { useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { UploadCloud, X, Loader2, CheckCircle } from "lucide-react";
+import { useAuth } from "../auth/AuthContext";
+import { uploadVideoFile, createVideoPost } from "./uploadService";
+
+export function UploadWizard() {
+	const { user } = useAuth();
+	const navigate = useNavigate();
+
+	const fileInputRef = useRef<HTMLInputElement>(null);
+
+	const [file, setFile] = useState<File | null>(null);
+	const [previewURL, setPreviewURL] = useState<string | null>(null);
+	const [caption, setCaption] = useState("");
+
+	const [isUploading, setIsUploading] = useState(false);
+	const [progress, setProgress] = useState(0);
+
+	const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+		if (e.target.files && e.target.files[0]) {
+			const selected = e.target.files[0];
+			setFile(selected);
+			// Create local preview URL
+			setPreviewURL(URL.createObjectURL(selected));
+		}
+	};
+
+	const handleUpload = async () => {
+		if (!file || !user) return;
+
+		setIsUploading(true);
+		try {
+			// 1. Upload File
+			const downloadURL = await uploadVideoFile(file, (prog) => {
+				setProgress(Math.round(prog));
+			});
+
+			// 2. Create DB Record
+			await createVideoPost(
+				user.uid,
+				downloadURL,
+				caption,
+				{
+					name: user.displayName || "Family Member",
+					photo: user.photoURL || ""
+				}
+			);
+
+			// 3. Success & Redirect
+			navigate("/");
+		} catch (error) {
+			console.error("Upload failed", error);
+			alert("Upload failed. Check console.");
+			setIsUploading(false);
+		}
+	};
+
+	// State 1: No File Selected
+	if (!file) {
+		return (
+			<div className="flex h-full flex-col items-center justify-center p-6 text-center">
+				<div
+					onClick={() => fileInputRef.current?.click()}
+					className="flex h-64 w-full cursor-pointer flex-col items-center justify-center rounded-3xl border-2 border-dashed border-gray-300 bg-gray-50 transition-colors hover:bg-gray-100 active:scale-98"
+				>
+					<UploadCloud size={64} className="mb-4 text-primary-500" />
+					<h3 className="text-xl font-bold text-gray-700">Select Video</h3>
+					<p className="text-sm text-gray-400">Tap to browse your gallery</p>
+				</div>
+				<input
+					type="file"
+					accept="video/*"
+					className="hidden"
+					ref={fileInputRef}
+					onChange={handleFileSelect}
+				/>
+			</div>
+		);
+	}
+
+	// State 2: Preview & Caption
+	return (
+		<div className="flex h-full flex-col bg-white">
+			{/* Header */}
+			<div className="flex items-center justify-between border-b p-4">
+				<button onClick={() => setFile(null)} disabled={isUploading}>
+					<X className="text-gray-500" />
+				</button>
+				<h2 className="font-bold">New Reel</h2>
+				<button
+					onClick={handleUpload}
+					disabled={isUploading || !caption}
+					className="font-bold text-primary-500 disabled:opacity-50"
+				>
+					{isUploading ? "..." : "Share"}
+				</button>
+			</div>
+
+			<div className="flex-1 overflow-y-auto p-4">
+				{/* Video Preview */}
+				<div className="relative mb-6 aspect-[9/16] w-full overflow-hidden rounded-2xl bg-black shadow-lg">
+					{previewURL && (
+						<video src={previewURL} className="h-full w-full object-cover" controls={false} autoPlay muted loop />
+					)}
+
+					{/* Upload Overlay */}
+					{isUploading && (
+						<div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm">
+							<Loader2 className="mb-2 h-10 w-10 animate-spin text-white" />
+							<span className="font-bold text-white">{progress}%</span>
+						</div>
+					)}
+				</div>
+
+				{/* Caption Input */}
+				<div className="flex gap-3">
+					<div className="h-10 w-10 overflow-hidden rounded-full bg-gray-200">
+						{user?.photoURL && <img src={user.photoURL} className="h-full w-full object-cover" />}
+					</div>
+					<textarea
+						value={caption}
+						onChange={(e) => setCaption(e.target.value)}
+						placeholder="Write a caption..."
+						className="flex-1 resize-none bg-transparent pt-2 outline-none"
+						rows={3}
+						disabled={isUploading}
+					/>
+				</div>
+			</div>
+		</div>
+	);
+}
