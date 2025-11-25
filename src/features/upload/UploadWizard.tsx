@@ -27,16 +27,32 @@ export function UploadWizard() {
 	};
 
 	const handleUpload = async () => {
-		if (!file || !user) return;
+		console.log("1. Button Clicked");
 
+		if (!file) {
+			console.error("Error: No file selected");
+			return;
+		}
+		if (!user) {
+			console.error("Error: No user found! You might be logged out.");
+			alert("Error: You seem to be logged out. Refresh the page.");
+			return;
+		}
+
+		console.log("2. Starting Upload...", { file: file.name, user: user.uid });
 		setIsUploading(true);
+
 		try {
 			// 1. Upload File
+			console.log("3. Uploading file to Storage...");
 			const downloadURL = await uploadVideoFile(file, (prog) => {
+				console.log("Upload Progress:", prog);
 				setProgress(Math.round(prog));
 			});
+			console.log("4. File Uploaded! URL:", downloadURL);
 
 			// 2. Create DB Record
+			console.log("5. Creating Firestore Document...");
 			await createVideoPost(
 				user.uid,
 				downloadURL,
@@ -46,12 +62,13 @@ export function UploadWizard() {
 					photo: user.photoURL || ""
 				}
 			);
+			console.log("6. Firestore Saved!");
 
 			// 3. Success & Redirect
 			navigate("/");
 		} catch (error) {
-			console.error("Upload failed", error);
-			alert("Upload failed. Check console.");
+			console.error("CRITICAL UPLOAD FAILURE:", error);
+			alert("Upload failed. See console for details.");
 			setIsUploading(false);
 		}
 	};
