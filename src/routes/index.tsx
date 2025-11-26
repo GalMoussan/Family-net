@@ -6,6 +6,7 @@ import { ProtectedRoute } from "../features/auth/ProtectedRoute";
 import { FeedList } from "../features/feed/FeedList";
 import { MessagesPage } from "../pages/MessagesPage";
 import { UploadWizard } from "../features/upload/UploadWizard";
+import { AdminPage } from "../pages/AdminPage";
 // Placeholder Components for testing
 const Placeholder = ({ title }: { title: string }) => (
 	<div className="flex h-[80vh] items-center justify-center p-4">
@@ -30,7 +31,7 @@ export const router = createBrowserRouter([
 			{ path: "messages", element: <MessagesPage /> },
 			{ path: "upload", element: <UploadWizard /> },
 			{ path: "profile/:uid", element: <Placeholder title="User Profile" /> },
-			{ path: "admin", element: <Placeholder title="Admin Dashboard" /> },
+			{ path: "admin", element: <AdminPage /> },
 		],
 	},
 	{
