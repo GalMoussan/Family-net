@@ -8,9 +8,10 @@ import { toggleLike } from "./feedService";
 interface ReelCardProps {
 	video: VideoPost;
 	isActive: boolean; // Parent tells us if we are visible
+	onCommentClick: () => void;
 }
 
-export function ReelCard({ video, isActive }: ReelCardProps) {
+export function ReelCard({ video, isActive, onCommentClick }: ReelCardProps) {
 	const { user } = useAuth();
 	const videoRef = useRef<HTMLVideoElement>(null);
 	const [isMuted, setIsMuted] = useState(true);
@@ -121,7 +122,7 @@ export function ReelCard({ video, isActive }: ReelCardProps) {
 				</div>
 
 				<div className="flex flex-col items-center gap-1">
-					<button className="transition-transform active:scale-90">
+					<button onClick={onCommentClick} className="transition-transform active:scale-90">
 						<MessageCircle size={32} className="text-white" />
 					</button>
 					<span className="text-sm font-medium text-white shadow-black drop-shadow-md">

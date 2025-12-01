@@ -4,12 +4,16 @@ import { Loader2 } from "lucide-react";
 import { db } from "../../lib/firebase";
 import { VideoPost } from "../../types";
 import { ReelCard } from "./ReelCard";
+import { CommentDrawer } from "./CommentDrawer";
 
 export function FeedList() {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const [videos, setVideos] = useState<VideoPost[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [activeIndex, setActiveIndex] = useState(0);
+
+	// Comment Drawer State
+	const [activeCommentVideoId, setActiveCommentVideoId] = useState<string | null>(null);
 
 	// 1. Fetch Videos from Firestore
 	useEffect(() => {
@@ -77,19 +81,32 @@ export function FeedList() {
 	}
 
 	return (
-		<div
-			ref={containerRef}
-			className="h-[100dvh] w-full snap-y snap-mandatory overflow-y-scroll bg-black scrollbar-hide"
-		>
-			{videos.map((video, index) => (
-				<div
-					key={video.id}
-					data-index={index}
-					className="reel-wrapper h-[100dvh] w-full snap-start"
-				>
-					<ReelCard video={video} isActive={activeIndex === index} />
-				</div>
-			))}
-		</div>
+		<>
+			<div
+				ref={containerRef}
+				className="h-[100dvh] w-full snap-y snap-mandatory overflow-y-scroll bg-black scrollbar-hide"
+			>
+				{videos.map((video, index) => (
+					<div
+						key={video.id}
+						data-index={index}
+						className="reel-wrapper h-[100dvh] w-full snap-start"
+					>
+						<ReelCard
+							video={video}
+							isActive={activeIndex === index}
+							onCommentClick={() => setActiveCommentVideoId(video.id)}
+						/>
+					</div>
+				))}
+			</div>
+
+			{/* Comment Drawer (Global for the feed) */}
+			<CommentDrawer
+				videoId={activeCommentVideoId}
+				isOpen={!!activeCommentVideoId}
+				onClose={() => setActiveCommentVideoId(null)}
+			/>
+		</>
 	);
 }

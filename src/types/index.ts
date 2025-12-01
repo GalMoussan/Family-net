@@ -58,3 +58,14 @@ export interface Message {
 	mediaURL?: string;
 	createdAt: Timestamp;
 }
+
+export interface Comment {
+	id: string;
+	text: string;
+	author: {
+		uid: string;
+		displayName: string;
+		photoURL?: string;
+	};
+	createdAt: Timestamp;
+}
