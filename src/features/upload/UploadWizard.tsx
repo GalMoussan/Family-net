@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { UploadCloud, X, Loader2, CheckCircle } from "lucide-react";
+import { UploadCloud, X, Loader2 } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
 import { uploadVideoFile, createVideoPost } from "./uploadService";
 

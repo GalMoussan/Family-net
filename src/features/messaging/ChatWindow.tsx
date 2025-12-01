@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Send, ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Message, UserProfile } from "../../types";
 import { subscribeToMessages, sendMessage } from "./chatService";
 import { useAuth } from "../auth/AuthContext";

@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { Trash2, Eye, EyeOff, ShieldAlert } from "lucide-react";
+import { Trash2, ShieldAlert } from "lucide-react";
 import { useAuth } from "../features/auth/AuthContext";
 import { VideoPost } from "../types";
-import { getAllVideosAdmin, deleteVideoAdmin, toggleVideoVisibility } from "../features/admin/adminService";
+import { getAllVideosAdmin, deleteVideoAdmin } from "../features/admin/adminService";
 
 export function AdminPage() {
 	const { user, isAdmin } = useAuth();

@@ -1,5 +1,5 @@
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import { collection, addDoc, Timestamp, doc, updateDoc, arrayUnion } from "firebase/firestore";
+import { collection, addDoc, Timestamp } from "firebase/firestore";
 import { db, storage } from "../../lib/firebase";
 import { VideoPost } from "../../types";
 

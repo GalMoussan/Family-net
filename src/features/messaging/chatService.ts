@@ -1,6 +1,6 @@
 import {
 	collection, addDoc, query, where, orderBy,
-	Timestamp, onSnapshot, limit, getDocs, doc, setDoc, updateDoc, getDoc
+	Timestamp, onSnapshot, limit, doc, setDoc, updateDoc, getDoc
 } from "firebase/firestore";
 import { db } from "../../lib/firebase";
 import { ChatRoom, Message } from "../../types";
