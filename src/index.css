@@ -40,4 +40,6 @@ body {
 	@apply bg-surface-dim text-gray-900 font-sans antialiased;
 	/* Prevent pull-to-refresh on mobile to feel like an app */
 	overscroll-behavior-y: none;
+	/* Handle safe area for iPhone notch */
+	padding-bottom: env(safe-area-inset-bottom);
 }

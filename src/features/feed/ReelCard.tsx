@@ -2,6 +2,8 @@ import { useRef, useEffect, useState } from "react";
 import { Heart, MessageCircle, MoreVertical, Volume2, VolumeX } from "lucide-react";
 import { VideoPost } from "@/types";
 import { cn } from "../../lib/utils";
+import { useAuth } from "../auth/AuthContext";
+import { toggleLike } from "./feedService";
 
 interface ReelCardProps {
 	video: VideoPost;
@@ -9,9 +11,22 @@ interface ReelCardProps {
 }
 
 export function ReelCard({ video, isActive }: ReelCardProps) {
+	const { user } = useAuth();
 	const videoRef = useRef<HTMLVideoElement>(null);
 	const [isMuted, setIsMuted] = useState(true);
-	const [isLiked, setIsLiked] = useState(false); // Local state for immediate UI feedback
+
+	// Local state for immediate UI feedback
+	// Initialize based on whether current user is in the likes array
+	const [isLiked, setIsLiked] = useState(false);
+	const [likeCount, setLikeCount] = useState(video.likes.length);
+
+	// Sync local state when video prop changes (e.g. initial load or feed refresh)
+	useEffect(() => {
+		if (user) {
+			setIsLiked(video.likes.includes(user.uid));
+		}
+		setLikeCount(video.likes.length);
+	}, [video.likes, user]);
 
 	// Play/Pause effect based on scroll position
 	useEffect(() => {
@@ -24,7 +39,48 @@ export function ReelCard({ video, isActive }: ReelCardProps) {
 	}, [isActive]);
 
 	const toggleMute = () => setIsMuted(!isMuted);
-	const toggleLike = () => setIsLiked(!isLiked);
+
+	const handleLike = async () => {
+		if (!user) return;
+
+		// Optimistic Update
+		const newLikedState = !isLiked;
+		setIsLiked(newLikedState);
+		setLikeCount((prev) => (newLikedState ? prev + 1 : prev - 1));
+
+		try {
+			// Call service (pass the OLD state so it knows what to do? 
+			// Actually our service takes 'isLiked' as "current state before toggle" 
+			// OR "target state"? 
+			// Let's look at feedService: "if (isLiked) ... arrayRemove". 
+			// So we should pass the state BEFORE the toggle.
+			await toggleLike(video.id, user.uid, isLiked);
+		} catch (error) {
+			console.error("Failed to toggle like:", error);
+			// Revert on failure
+			setIsLiked(!newLikedState);
+			setLikeCount((prev) => (!newLikedState ? prev + 1 : prev - 1));
+		}
+	};
+
+	// Double tap handler
+	const lastTap = useRef<number>(0);
+	const handleVideoClick = () => {
+		const now = Date.now();
+		const DOUBLE_TAP_DELAY = 300;
+
+		if (now - lastTap.current < DOUBLE_TAP_DELAY) {
+			// Double tap detected
+			if (!isLiked) {
+				handleLike();
+			}
+			// Optional: Trigger a heart animation overlay here
+		} else {
+			// Single tap - toggle mute
+			toggleMute();
+		}
+		lastTap.current = now;
+	};
 
 	return (
 		<div className="relative h-[100dvh] w-full snap-start bg-black">
@@ -36,7 +92,7 @@ export function ReelCard({ video, isActive }: ReelCardProps) {
 				loop
 				playsInline
 				muted={isMuted}
-				onClick={toggleMute} // Click video to unmute
+				onClick={handleVideoClick} // Handle double tap vs single tap
 			/>
 
 			{/* Top Gradient for visibility */}
@@ -53,14 +109,14 @@ export function ReelCard({ video, isActive }: ReelCardProps) {
 			{/* Right Sidebar Actions */}
 			<div className="absolute bottom-24 right-4 z-20 flex flex-col items-center gap-6">
 				<div className="flex flex-col items-center gap-1">
-					<button onClick={toggleLike} className="transition-transform active:scale-90">
+					<button onClick={handleLike} className="transition-transform active:scale-90">
 						<Heart
 							size={32}
 							className={cn("transition-colors", isLiked ? "fill-primary-500 text-primary-500" : "text-white")}
 						/>
 					</button>
 					<span className="text-sm font-medium text-white shadow-black drop-shadow-md">
-						{video.likes.length + (isLiked ? 1 : 0)}
+						{likeCount}
 					</span>
 				</div>
 
