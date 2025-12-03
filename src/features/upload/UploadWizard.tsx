@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { UploadCloud, X, Loader2 } from "lucide-react";
+import { UploadCloud, X, Loader2, Wand2 } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
 import { uploadVideoFile, createArticlePost } from "./uploadService";
 
@@ -20,7 +20,33 @@ export function UploadWizard() {
 	const [summary, setSummary] = useState("");
 
 	const [isUploading, setIsUploading] = useState(false);
+	const [isAutoFilling, setIsAutoFilling] = useState(false);
 	const [progress, setProgress] = useState(0);
+
+	const handleAutoFill = async () => {
+		if (!externalLink) return;
+		setIsAutoFilling(true);
+		try {
+			const response = await fetch('/api/summarize', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ url: externalLink })
+			});
+
+			if (!response.ok) throw new Error("Failed to auto-fill");
+
+			const data = await response.json();
+			if (data.title) setTitle(data.title);
+			if (data.summary) setSummary(data.summary);
+			if (data.tags && Array.isArray(data.tags)) setTags(data.tags.join(", "));
+
+		} catch (error) {
+			console.error("Auto-fill error:", error);
+			alert("Failed to auto-fill. Please check the link or try again.");
+		} finally {
+			setIsAutoFilling(false);
+		}
+	};
 
 	const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
 		if (e.target.files && e.target.files[0]) {
@@ -173,14 +199,24 @@ export function UploadWizard() {
 					{/* External Link */}
 					<div>
 						<label className="mb-1 block text-sm font-bold text-gray-700">External Link</label>
-						<input
-							type="url"
-							value={externalLink}
-							onChange={(e) => setExternalLink(e.target.value)}
-							placeholder="https://scholar.google.com/..."
-							className="w-full rounded-lg border border-gray-300 p-3 outline-none focus:border-primary-500"
-							disabled={isUploading}
-						/>
+						<div className="flex gap-2">
+							<input
+								type="url"
+								value={externalLink}
+								onChange={(e) => setExternalLink(e.target.value)}
+								placeholder="https://scholar.google.com/..."
+								className="flex-1 rounded-lg border border-gray-300 p-3 outline-none focus:border-primary-500"
+								disabled={isUploading || isAutoFilling}
+							/>
+							<button
+								onClick={handleAutoFill}
+								disabled={!externalLink || isAutoFilling || isUploading}
+								className="flex items-center gap-2 rounded-lg bg-purple-100 px-4 font-bold text-purple-600 transition-colors hover:bg-purple-200 disabled:opacity-50"
+							>
+								{isAutoFilling ? <Loader2 className="animate-spin" size={18} /> : <Wand2 size={18} />}
+								Auto-Fill
+							</button>
+						</div>
 					</div>
 
 					{/* Summary */}
