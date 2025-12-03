@@ -2,13 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import { Loader2 } from "lucide-react";
 import { db } from "../../lib/firebase";
-import { VideoPost } from "../../types";
+import { ArticlePost } from "../../types";
 import { ReelCard } from "./ReelCard";
 import { CommentDrawer } from "./CommentDrawer";
 
 export function FeedList() {
 	const containerRef = useRef<HTMLDivElement>(null);
-	const [videos, setVideos] = useState<VideoPost[]>([]);
+	const [videos, setVideos] = useState<ArticlePost[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [activeIndex, setActiveIndex] = useState(0);
 
@@ -28,7 +28,7 @@ export function FeedList() {
 			const fetchedVideos = snapshot.docs.map((doc) => ({
 				id: doc.id,
 				...doc.data(),
-			})) as VideoPost[];
+			})) as ArticlePost[];
 
 			setVideos(fetchedVideos);
 			setLoading(false);

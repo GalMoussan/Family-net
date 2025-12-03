@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { Trash2, ShieldAlert } from "lucide-react";
 import { useAuth } from "../features/auth/AuthContext";
-import { VideoPost } from "../types";
+import { ArticlePost } from "../types";
 import { getAllVideosAdmin, deleteVideoAdmin } from "../features/admin/adminService";
 
 export function AdminPage() {
 	const { user, isAdmin } = useAuth();
-	const [videos, setVideos] = useState<VideoPost[]>([]);
+	const [videos, setVideos] = useState<ArticlePost[]>([]);
 	const [loading, setLoading] = useState(true);
 
 	const fetchData = async () => {
@@ -57,7 +57,7 @@ export function AdminPage() {
 						<thead className="bg-gray-50 text-xs uppercase text-gray-700">
 							<tr>
 								<th className="px-6 py-4">Video</th>
-								<th className="px-6 py-4">Caption</th>
+								<th className="px-6 py-4">Title</th>
 								<th className="px-6 py-4">Author</th>
 								<th className="px-6 py-4">Date</th>
 								<th className="px-6 py-4 text-right">Actions</th>
@@ -72,7 +72,7 @@ export function AdminPage() {
 										</a>
 									</td>
 									<td className="px-6 py-4 font-medium text-gray-900 max-w-xs truncate">
-										{video.caption}
+										{video.title}
 									</td>
 									<td className="px-6 py-4">
 										<div className="flex items-center gap-2">

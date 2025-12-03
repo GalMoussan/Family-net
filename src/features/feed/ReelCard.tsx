@@ -1,12 +1,12 @@
 import { useRef, useEffect, useState } from "react";
-import { Heart, MessageCircle, MoreVertical, Volume2, VolumeX } from "lucide-react";
-import { VideoPost } from "@/types";
+import { Heart, MessageCircle, MoreVertical, Volume2, VolumeX, ExternalLink } from "lucide-react";
+import { ArticlePost } from "@/types";
 import { cn } from "../../lib/utils";
 import { useAuth } from "../auth/AuthContext";
 import { toggleLike } from "./feedService";
 
 interface ReelCardProps {
-	video: VideoPost;
+	video: ArticlePost;
 	isActive: boolean; // Parent tells us if we are visible
 	onCommentClick: () => void;
 }
@@ -15,6 +15,7 @@ export function ReelCard({ video, isActive, onCommentClick }: ReelCardProps) {
 	const { user } = useAuth();
 	const videoRef = useRef<HTMLVideoElement>(null);
 	const [isMuted, setIsMuted] = useState(true);
+	const [isExpanded, setIsExpanded] = useState(false);
 
 	// Local state for immediate UI feedback
 	// Initialize based on whether current user is in the likes array
@@ -50,11 +51,7 @@ export function ReelCard({ video, isActive, onCommentClick }: ReelCardProps) {
 		setLikeCount((prev) => (newLikedState ? prev + 1 : prev - 1));
 
 		try {
-			// Call service (pass the OLD state so it knows what to do? 
-			// Actually our service takes 'isLiked' as "current state before toggle" 
-			// OR "target state"? 
-			// Let's look at feedService: "if (isLiked) ... arrayRemove". 
-			// So we should pass the state BEFORE the toggle.
+			// Call service
 			await toggleLike(video.id, user.uid, isLiked);
 		} catch (error) {
 			console.error("Failed to toggle like:", error);
@@ -136,23 +133,51 @@ export function ReelCard({ video, isActive, onCommentClick }: ReelCardProps) {
 			</div>
 
 			{/* Bottom Info Overlay */}
-			<div className="absolute bottom-0 left-0 z-10 w-full bg-gradient-to-t from-black/90 via-black/40 to-transparent px-4 pb-24 pt-10">
-				<div className="flex items-center gap-3 mb-3">
-					{/* Avatar */}
-					<div className="h-10 w-10 overflow-hidden rounded-full border-2 border-white">
-						<img src={video.author?.photoURL} alt={video.author?.displayName} className="h-full w-full object-cover" />
-					</div>
-					<span className="font-semibold text-white shadow-black drop-shadow-md">
-						{video.author?.displayName}
-					</span>
-					<button className="rounded-md border border-white/30 bg-white/20 px-3 py-1 text-xs font-medium text-white backdrop-blur-md">
-						Follow
-					</button>
+			<div className="absolute bottom-0 left-0 z-10 w-full bg-gradient-to-t from-black/95 via-black/60 to-transparent px-4 pb-8 pt-24">
+
+				{/* Tags */}
+				<div className="mb-2 flex flex-wrap gap-2">
+					{video.tags?.map((tag, i) => (
+						<span key={i} className="rounded-full bg-white/20 px-2 py-0.5 text-xs font-medium text-white backdrop-blur-md">
+							{tag}
+						</span>
+					))}
 				</div>
 
-				<p className="text-white/90 line-clamp-2 shadow-black drop-shadow-md text-sm">
-					{video.caption}
-				</p>
+				{/* Title */}
+				<h2 className="mb-2 text-xl font-bold text-white shadow-black drop-shadow-md">
+					{video.title}
+				</h2>
+
+				{/* Summary */}
+				<div
+					className="mb-4 cursor-pointer"
+					onClick={() => setIsExpanded(!isExpanded)}
+				>
+					<p className={cn(
+						"text-white/90 shadow-black drop-shadow-md text-sm leading-relaxed",
+						!isExpanded && "line-clamp-3"
+					)}>
+						{video.summary}
+					</p>
+					{!isExpanded && (
+						<span className="text-xs font-bold text-gray-300">Read More</span>
+					)}
+				</div>
+
+				{/* Action Button */}
+				{video.externalLink && (
+					<button
+						onClick={(e) => {
+							e.stopPropagation();
+							window.open(video.externalLink, '_blank');
+						}}
+						className="flex w-full items-center justify-center gap-2 rounded-xl bg-white py-3 font-bold text-black transition-transform active:scale-95"
+					>
+						<ExternalLink size={18} />
+						Read Full Paper
+					</button>
+				)}
 			</div>
 		</div>
 	);

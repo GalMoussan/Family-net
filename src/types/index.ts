@@ -21,12 +21,15 @@ export interface AuthState {
 }
 
 // --- VIDEO TYPES (Ensure this is here!) ---
-export interface VideoPost {
+export interface ArticlePost {
 	id: string;
 	uid: string;
 	videoURL: string;
 	thumbnailURL: string;
-	caption: string;
+	title: string;
+	summary: string;
+	externalLink: string;
+	tags: string[];
 	likes: string[]; // Array of User IDs
 	commentCount: number;
 	createdAt: Timestamp;

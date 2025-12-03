@@ -1,7 +1,7 @@
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { collection, addDoc, Timestamp } from "firebase/firestore";
 import { db, storage } from "../../lib/firebase";
-import { VideoPost } from "../../types";
+import { ArticlePost } from "../../types";
 
 // Upload the actual file binary
 export const uploadVideoFile = (
@@ -33,17 +33,23 @@ export const uploadVideoFile = (
 };
 
 // Create the database record
-export const createVideoPost = async (
+export const createArticlePost = async (
 	uid: string,
 	videoURL: string,
-	caption: string,
+	title: string,
+	summary: string,
+	externalLink: string,
+	tags: string[],
 	userDisplay: { name: string, photo: string }
 ) => {
-	const newVideo: Omit<VideoPost, "id"> = {
+	const newArticle: Omit<ArticlePost, "id"> = {
 		uid,
 		videoURL,
-		thumbnailURL: "", // In a real app, we'd generate this server-side. For now, we leave empty or use a placeholder.
-		caption,
+		thumbnailURL: "", // In a real app, we'd generate this server-side.
+		title,
+		summary,
+		externalLink,
+		tags,
 		likes: [],
 		commentCount: 0,
 		createdAt: Timestamp.now(),
@@ -53,12 +59,7 @@ export const createVideoPost = async (
 		}
 	};
 
-	const docRef = await addDoc(collection(db, "videos"), newVideo);
-
-	// Optional: Add video ID to user's profile if we wanted a fast lookup list
-	// await updateDoc(doc(db, "users", uid), {
-	//   videos: arrayUnion(docRef.id) 
-	// });
+	const docRef = await addDoc(collection(db, "videos"), newArticle);
 
 	return docRef.id;
 };

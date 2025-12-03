@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { UploadCloud, X, Loader2 } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
-import { uploadVideoFile, createVideoPost } from "./uploadService";
+import { uploadVideoFile, createArticlePost } from "./uploadService";
 
 export function UploadWizard() {
 	const { user } = useAuth();
@@ -12,7 +12,12 @@ export function UploadWizard() {
 
 	const [file, setFile] = useState<File | null>(null);
 	const [previewURL, setPreviewURL] = useState<string | null>(null);
-	const [caption, setCaption] = useState("");
+
+	// New Fields
+	const [title, setTitle] = useState("");
+	const [tags, setTags] = useState("");
+	const [externalLink, setExternalLink] = useState("");
+	const [summary, setSummary] = useState("");
 
 	const [isUploading, setIsUploading] = useState(false);
 	const [progress, setProgress] = useState(0);
@@ -53,10 +58,17 @@ export function UploadWizard() {
 
 			// 2. Create DB Record
 			console.log("5. Creating Firestore Document...");
-			await createVideoPost(
+
+			// Process tags: split by comma, trim whitespace
+			const tagArray = tags.split(",").map(t => t.trim()).filter(t => t.length > 0);
+
+			await createArticlePost(
 				user.uid,
 				downloadURL,
-				caption,
+				title,
+				summary,
+				externalLink,
+				tagArray,
 				{
 					name: user.displayName || "Family Member",
 					photo: user.photoURL || ""
@@ -96,7 +108,7 @@ export function UploadWizard() {
 		);
 	}
 
-	// State 2: Preview & Caption
+	// State 2: Preview & Metadata Form
 	return (
 		<div className="flex h-full flex-col bg-white">
 			{/* Header */}
@@ -104,10 +116,10 @@ export function UploadWizard() {
 				<button onClick={() => setFile(null)} disabled={isUploading}>
 					<X className="text-gray-500" />
 				</button>
-				<h2 className="font-bold">New Reel</h2>
+				<h2 className="font-bold">New Article</h2>
 				<button
 					onClick={handleUpload}
-					disabled={isUploading || !caption}
+					disabled={isUploading || !title || !summary}
 					className="font-bold text-primary-500 disabled:opacity-50"
 				>
 					{isUploading ? "..." : "Share"}
@@ -130,19 +142,59 @@ export function UploadWizard() {
 					)}
 				</div>
 
-				{/* Caption Input */}
-				<div className="flex gap-3">
-					<div className="h-10 w-10 overflow-hidden rounded-full bg-gray-200">
-						{user?.photoURL && <img src={user.photoURL} className="h-full w-full object-cover" />}
+				{/* Metadata Inputs */}
+				<div className="flex flex-col gap-4">
+					{/* Title */}
+					<div>
+						<label className="mb-1 block text-sm font-bold text-gray-700">Title</label>
+						<input
+							type="text"
+							value={title}
+							onChange={(e) => setTitle(e.target.value)}
+							placeholder="Article Title..."
+							className="w-full rounded-lg border border-gray-300 p-3 font-bold outline-none focus:border-primary-500"
+							disabled={isUploading}
+						/>
 					</div>
-					<textarea
-						value={caption}
-						onChange={(e) => setCaption(e.target.value)}
-						placeholder="Write a caption..."
-						className="flex-1 resize-none bg-transparent pt-2 outline-none"
-						rows={3}
-						disabled={isUploading}
-					/>
+
+					{/* Tags */}
+					<div>
+						<label className="mb-1 block text-sm font-bold text-gray-700">Tags</label>
+						<input
+							type="text"
+							value={tags}
+							onChange={(e) => setTags(e.target.value)}
+							placeholder="Biology, AI, History..."
+							className="w-full rounded-lg border border-gray-300 p-3 outline-none focus:border-primary-500"
+							disabled={isUploading}
+						/>
+					</div>
+
+					{/* External Link */}
+					<div>
+						<label className="mb-1 block text-sm font-bold text-gray-700">External Link</label>
+						<input
+							type="url"
+							value={externalLink}
+							onChange={(e) => setExternalLink(e.target.value)}
+							placeholder="https://scholar.google.com/..."
+							className="w-full rounded-lg border border-gray-300 p-3 outline-none focus:border-primary-500"
+							disabled={isUploading}
+						/>
+					</div>
+
+					{/* Summary */}
+					<div>
+						<label className="mb-1 block text-sm font-bold text-gray-700">Summary</label>
+						<textarea
+							value={summary}
+							onChange={(e) => setSummary(e.target.value)}
+							placeholder="Paste the abstract or summary here..."
+							className="w-full resize-none rounded-lg border border-gray-300 p-3 outline-none focus:border-primary-500"
+							rows={6}
+							disabled={isUploading}
+						/>
+					</div>
 				</div>
 			</div>
 		</div>
