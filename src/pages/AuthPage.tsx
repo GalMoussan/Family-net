@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
 	createUserWithEmailAndPassword,
 	signInWithEmailAndPassword,
@@ -7,12 +7,21 @@ import {
 import { useNavigate } from "react-router-dom";
 import { auth } from "../lib/firebase";
 import { Loader2, Mail, Lock, User } from "lucide-react";
+import { useAuth } from "../features/auth/AuthContext";
 
 export function AuthPage() {
+	const { user } = useAuth();
 	const [isLogin, setIsLogin] = useState(true); // Toggle between Login and Signup
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState("");
 	const navigate = useNavigate();
+
+	// Redirect if already logged in
+	useEffect(() => {
+		if (user) {
+			navigate("/", { replace: true });
+		}
+	}, [user, navigate]);
 
 	// Form State
 	const [email, setEmail] = useState("");
@@ -38,7 +47,6 @@ export function AuthPage() {
 				});
 			}
 			// AuthContext listener will handle the redirection and DB creation
-			navigate("/", { replace: true });
 		} catch (err: any) {
 			console.error(err);
 			// Friendly error mapping
